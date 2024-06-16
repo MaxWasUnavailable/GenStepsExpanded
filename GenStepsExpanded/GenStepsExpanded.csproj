@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!-- General Project Information -->
+        <TargetFramework>net472</TargetFramework>
+        <AssemblyName>MaxWasUnavailable.GenStepsExpanded</AssemblyName>
+        <PackageId>MaxWasUnavailable.GenStepsExpanded</PackageId>
+        <Title>GenStepsExpanded</Title>
+        <Description>Adds some additional generation steps and checks for use in Phantom Brigade mods.</Description>
+        <Version>1.0.0</Version>
+        <Authors>MaxWasUnavailable</Authors>
+        <PackageTags>phantom;brigade</PackageTags>
+
+        <!-- Package Information -->
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/MaxWasUnavailable/GenStepsExpanded</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MaxWasUnavailable/GenStepsExpanded</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+
+        <!-- Build Information -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <!-- NuGet Information -->
+        <RestoreAdditionalProjectSources>
+            https://api.nuget.org/v3/index.json;
+            https://nuget.bepinex.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+
+        <!-- Prevent Publicizer Warnings from Showing -->
+        <NoWarn>$(NoWarn);CS0436</NoWarn>
+
+        <ModDestination>$(ProjectDir)..\mod\$(Title)</ModDestination>
+    </PropertyGroup>
+
+    <!-- Include README and CHANGELOG in the package -->
+    <ItemGroup>
+        <None Include="$(ProjectDir)../README.md" Pack="true" PackagePath="/"/>
+        <None Include="$(ProjectDir)../CHANGELOG.md" Pack="true" PackagePath="/"/>
+    </ItemGroup>
+
+    <!-- BepInEx Assembly Publicizer -->
+    <ItemGroup>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" ExcludeAssets="runtime"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="UnityEngine" HintPath="$(PB_REFERENCES)\UnityEngine.dll" Private="False" Publicize="true"/>
+        <Reference Include="UnityEngine.CoreModule" HintPath="$(PB_REFERENCES)\UnityEngine.CoreModule.dll" Private="False" Publicize="true"/>
+        <Reference Include="Harmony" HintPath="$(PB_REFERENCES)\0Harmony.dll" Private="False" Publicize="true"/>
+        <Reference Include="Assembly-CSharp" HintPath="$(PB_REFERENCES)\Assembly-CSharp.dll" Private="False" Publicize="true"/>
+        <Reference Include="Assembly-CSharp-firstpass" HintPath="$(PB_REFERENCES)\Assembly-CSharp-firstpass.dll" Private="False"/>
+        <Reference Include="Entitas" HintPath="$(PB_REFERENCES)\Entitas.dll" Private="False" Publicize="true"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="Build">
+        <!-- Create an item for all .dll files in the output directory -->
+        <CreateItem Include="$(OutDir)*.dll">
+            <Output TaskParameter="Include" ItemName="DllFiles"/>
+        </CreateItem>
+
+        <!-- Copy the build output -->
+        <Message Text="Copying build output assemblies from $(OutDir)*.dll to $(ModDestination)\Libraries" Importance="high"/>
+        <Copy SourceFiles="@(DllFiles)" DestinationFolder="$(ModDestination)\Libraries"/>
+
+        <!-- Copy README & CHANGELOG -->
+        <Message Text="Copying README from $(ProjectDir)..\README.md to $(ModDestination)" Importance="high"/>
+        <Copy SourceFiles="$(ProjectDir)..\README.md" DestinationFolder="$(ModDestination)"/>
+        <Message Text="Copying CHANGELOG from $(ProjectDir)..\CHANGELOG.md to $(ModDestination)" Importance="high"/>
+        <Copy SourceFiles="$(ProjectDir)..\CHANGELOG.md" DestinationFolder="$(ModDestination)"/>
+
+        <!-- Copy mod metadata -->
+        <Message Text="Copying mod metadata from $(ProjectDir)metadata.yaml to $(ModDestination)" Importance="high"/>
+        <Copy SourceFiles="$(ProjectDir)metadata.yaml" DestinationFolder="$(ModDestination)"/>
+    </Target>
+</Project>
