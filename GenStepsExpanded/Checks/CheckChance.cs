@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace GenStepsExpanded.Checks;
 
+#nullable disable
 public class CheckChance : IPartGenCheck
 {
     // ReSharper disable once InconsistentNaming
